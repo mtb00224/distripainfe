@@ -1,0 +1,337 @@
+@if (loading()) {
+  <app-loading-spinner />
+} @else if (tournee()) {
+  @let t = tournee()!;
+  <app-page-header [title]="'Tournée ' + (t.periode === 'matin' ? '🌅 Matin' : '🌙 Soir')" [subtitle]="t.date" />
+
+  <!-- Summary card -->
+  <div class="card mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ t.boulangerie?.nom }}</p>
+        <app-status-badge [status]="t.statut" />
+      </div>
+      @if (t.statut === 'en_cours') {
+        <button (click)="terminer()" class="btn-primary text-sm py-1.5">✅ Terminer toute la tournée</button>
+      }
+    </div>
+    @if (showEditChiffres()) {
+      <!-- Retour boulangerie par portion -->
+      <div class="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+        <p class="text-sm font-medium text-amber-800 dark:text-amber-300 mb-3">🔄 Retour boulangerie par tranche</p>
+        @if (portions().length === 0) {
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Aucune portion définie. Configurez vos portions de pain d'abord.</p>
+        } @else {
+          <div class="space-y-2 mb-3">
+            @for (p of portions(); track p.id) {
+              <div class="flex items-center gap-3">
+                <span class="text-xs text-gray-600 dark:text-gray-400 w-36">{{ p.nom }} ({{ p.prix_fcfa }} XOF)</span>
+                <input type="number"
+                  [ngModel]="boulangerieRetourLignes()[p.id] || 0"
+                  (ngModelChange)="setBoulangerieRetourLigne(p.id, $event)"
+                  min="0" class="input-field w-20 text-sm py-1" />
+                <span class="text-xs text-gray-500 dark:text-gray-400">pains</span>
+                <span class="text-xs text-orange-600 dark:text-orange-400">
+                  = {{ (boulangerieRetourLignes()[p.id] || 0) * p.prix_fcfa | number }} XOF
+                </span>
+              </div>
+            }
+          </div>
+          <div class="text-sm mb-3 p-2 bg-white dark:bg-gray-800 rounded border border-amber-100 dark:border-amber-900 space-y-1">
+            <div class="flex justify-between">
+              <span class="text-gray-500 dark:text-gray-400">Total retournés :</span>
+              <strong class="text-orange-600">{{ boulangerieRetourTotal() }} pains</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-500 dark:text-gray-400">Valeur retour :</span>
+              <strong class="text-orange-600">{{ boulangerieRetourValeur() | number }} XOF</strong>
+            </div>
+            <div class="flex justify-between border-t border-gray-100 dark:border-gray-700 pt-1 mt-1">
+              <span class="text-gray-500 dark:text-gray-400">Pains écoulés :</span>
+              <strong class="text-green-600">{{ t.nb_pains_pris - boulangerieRetourTotal() }} pains</strong>
+            </div>
+          </div>
+        }
+        <div class="flex gap-2">
+          <button (click)="saveChiffres()" [disabled]="saving()" class="btn-primary text-sm py-1.5">✓ Sauvegarder</button>
+          <button (click)="showEditChiffres.set(false)" class="btn-secondary text-sm py-1.5">Annuler</button>
+        </div>
+      </div>
+    } @else {
+      <div class="grid grid-cols-3 gap-4 mt-4">
+        <div class="text-center">
+          <p class="text-2xl font-bold text-blue-600">{{ t.nb_pains_pris }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Pains pris</p>
+        </div>
+        <div class="text-center">
+          <p class="text-2xl font-bold text-green-600">{{ t.nb_pains_ecoules }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Écoulés</p>
+        </div>
+        <div class="text-center">
+          <p class="text-2xl font-bold text-orange-500">{{ t.nb_pains_retournes }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Retournés</p>
+        </div>
+      </div>
+      @if (t.statut === 'en_cours') {
+        <button (click)="openEditChiffres()" class="mt-3 text-xs text-amber-600 hover:text-amber-800 underline">
+          ✏️ Déclarer le retour boulangerie
+        </button>
+      }
+    }
+  </div>
+
+  @if (success()) {
+    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 text-sm px-4 py-3 rounded-lg mb-4">✅ Opération réussie !</div>
+  }
+  @if (error()) {
+    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm px-4 py-3 rounded-lg mb-4">{{ error() }}</div>
+  }
+
+  <!-- Livraisons grouped by client -->
+  @if (clientsAvecLivraisons().length > 0) {
+    <div class="space-y-3 mb-4">
+      @for (groupe of clientsAvecLivraisons(); track groupe.clientId) {
+        <div class="card" [class.opacity-75]="groupe.isTermine">
+          <!-- Client header -->
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">👤</span>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <p class="font-medium text-gray-900 dark:text-gray-100">{{ groupe.clientNom }}</p>
+                  @if (groupe.clientZoneNom) {
+                    <span class="text-xs px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
+                      📍 {{ groupe.clientZoneNom }}
+                    </span>
+                  }
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ groupe.totalLivres }} livrés · {{ groupe.totalRetournes }} retournés ·
+                  <strong class="text-gray-700 dark:text-gray-300">{{ groupe.totalMontant | currency:'XOF':'symbol-narrow':'1.0-0' }}</strong>
+                  @if (groupe.clientTelephone) { · {{ groupe.clientTelephone }} }
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              @if (groupe.isTermine) {
+                <span class="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">✅ Terminé</span>
+              } @else if (t.statut === 'en_cours') {
+                <button (click)="openTerminerClient(groupe.clientId, groupe.clientNom, groupe.totalMontant)"
+                  class="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 px-2 py-1 rounded-full transition-colors">
+                  🏁 Terminer ce client
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Individual livraisons -->
+          <div class="space-y-2">
+            @for (lv of groupe.livraisons; track lv.id) {
+              @if (editingId() === lv.id) {
+                <div class="py-2 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Sous-livraison #{{ lv.id }}</p>
+                  <div class="flex gap-2 items-start flex-wrap">
+                    <div>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Pains livrés</p>
+                      <input type="number" [(ngModel)]="editLivres" min="0" class="input-field w-24 text-sm py-1" />
+                    </div>
+                    <div>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Retours par tranche</p>
+                      @for (p of portions(); track p.id) {
+                        <div class="flex items-center gap-2 mb-1">
+                          <span class="text-xs text-gray-400 dark:text-gray-500 w-24">{{ p.nom }} {{ p.prix_fcfa }} XOF</span>
+                          <input type="number"
+                            [ngModel]="editInlineRetourLignes[p.id] || 0"
+                            (ngModelChange)="setInlineRetourLigne(p.id, $event)"
+                            min="0" class="input-field w-16 text-sm py-1" />
+                        </div>
+                      }
+                      <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Total retournés : {{ getInlineRetourTotal() }}</p>
+                    </div>
+                  </div>
+                  <div class="flex gap-2 mt-2">
+                    <button (click)="saveEdit(lv)" [disabled]="saving()" class="btn-primary text-sm py-1.5">✓ Sauver</button>
+                    <button (click)="cancelEdit()" class="btn-secondary text-sm py-1.5">Annuler</button>
+                  </div>
+                </div>
+              } @else {
+                <div class="flex items-center justify-between py-2 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                  <div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                      Livraison #{{ lv.id }} · {{ lv.nb_pains_livres }} livrés · {{ lv.nb_pains_retournes }} retournés
+                    </p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500">{{ lv.prix_unitaire }} XOF/pain</p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">{{ lv.montant_du | currency:'XOF':'symbol-narrow':'1.0-0' }}</span>
+                    @if (t.statut === 'en_cours' && !groupe.isTermine) {
+                      <button (click)="startEdit(lv)" class="text-blue-500 hover:text-blue-700 text-sm px-1">✏️</button>
+                      <button (click)="deleteLivraison(lv)" class="text-red-400 hover:text-red-600 text-sm px-1">🗑️</button>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Per-client termination panel -->
+  @if (terminerState()) {
+    @let state = terminerState()!;
+    <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50">
+      <div class="card w-full max-w-md">
+        <h3 class="section-title mb-1">🏁 Terminer : {{ state.clientNom }}</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Montant dû : <strong class="text-gray-900 dark:text-gray-100">{{ state.montantDu | currency:'XOF':'symbol-narrow':'1.0-0' }}</strong>
+        </p>
+
+        <!-- Payment mode toggle -->
+        <div class="space-y-2 mb-4">
+          <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+            [ngClass]="!state.encaisser && !state.modeDette
+              ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-600'
+              : 'border-gray-200 dark:border-gray-600'">
+            <input type="radio" [checked]="!state.encaisser && !state.modeDette"
+              (change)="setTerminerMode('none')" class="accent-amber-500" />
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Terminer sans paiement</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Le solde reste à recouvrer</p>
+            </div>
+          </label>
+
+          <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+            [ngClass]="state.encaisser
+              ? 'border-green-400 bg-green-50 dark:bg-green-900/20 dark:border-green-600'
+              : 'border-gray-200 dark:border-gray-600'">
+            <input type="radio" [checked]="state.encaisser"
+              (change)="setTerminerMode('encaisser')" class="accent-green-500" />
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">💵 Encaisser maintenant</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Paiement reçu sur place</p>
+            </div>
+          </label>
+
+          <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+            [ngClass]="state.modeDette
+              ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-600'
+              : 'border-gray-200 dark:border-gray-600'">
+            <input type="radio" [checked]="state.modeDette"
+              (change)="setTerminerMode('dette')" class="accent-purple-500" />
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">📋 Reporter (dette)</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Client paiera plus tard</p>
+            </div>
+          </label>
+        </div>
+
+        @if (state.encaisser) {
+          <div class="mb-4">
+            <label class="label">Montant encaissé (XOF)</label>
+            <input type="number" [ngModel]="state.montant"
+              (ngModelChange)="setTerminerMontant($event)"
+              class="input-field text-lg font-bold" min="0" step="1" />
+          </div>
+        }
+
+        <div class="mb-4">
+          <label class="label">Notes (optionnel)</label>
+          <input type="text" [ngModel]="state.notes"
+            (ngModelChange)="setTerminerNotes($event)"
+            class="input-field text-sm" placeholder="Remarque..." />
+        </div>
+
+        <div class="flex gap-2">
+          <button (click)="confirmerTerminerClient()" [disabled]="terminerSaving()" class="btn-primary flex-1">
+            @if (terminerSaving()) { En cours... } @else { ✅ Confirmer }
+          </button>
+          <button (click)="cancelTerminerClient()" class="btn-secondary">Annuler</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Add livraisons -->
+  @if (t.statut === 'en_cours') {
+    <div class="card">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="section-title">Ajouter des livraisons</h2>
+        <button (click)="toggleClientEntry()" class="btn-secondary text-sm py-1.5">
+          {{ showClientEntry() ? 'Masquer' : 'Sélectionner clients' }}
+        </button>
+      </div>
+
+      @if (showClientEntry()) {
+        <input type="search"
+          [ngModel]="searchClients()"
+          (ngModelChange)="searchClients.set($event)"
+          class="input-field mb-3"
+          placeholder="🔍 Rechercher par nom ou téléphone..." />
+        <div class="space-y-2 mb-4 max-h-[560px] overflow-y-auto">
+          @for (entry of filteredClients(); track entry.client.id) {
+            @let hasExisting = livraisonsParClient().has(entry.client.id);
+            <div class="flex items-start gap-3 p-3 rounded-lg border transition-colors"
+              [class.border-amber-400]="entry.selected"
+              [class.border-gray-100]="!entry.selected"
+              [class.dark:border-gray-700]="!entry.selected">
+              <input type="checkbox" [checked]="entry.selected" (change)="toggleClient(entry)" class="mt-1 accent-amber-500" />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <p class="font-medium text-sm text-gray-900 dark:text-gray-100">{{ entry.client.nom }}</p>
+                  @if (entry.client.zone) {
+                    <span class="text-xs px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
+                      📍 {{ entry.client.zone.nom }}
+                    </span>
+                  }
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Prix: {{ entry.client.prix_vente_pain ?? 0 }} XOF
+                  @if (entry.client.telephone) { · {{ entry.client.telephone }} }
+                </p>
+                @if (hasExisting) {
+                  <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded mt-1 inline-block">
+                    + sous-livraison
+                  </span>
+                }
+              </div>
+              @if (entry.selected) {
+                <div class="flex gap-4 flex-wrap">
+                  <div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Pains livrés</p>
+                    <input type="number" [(ngModel)]="entry.nb_pains_livres" min="0" class="input-field w-24 text-sm py-1" />
+                  </div>
+                  <div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Retours par tranche</p>
+                    @for (p of portions(); track p.id) {
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs text-gray-500 dark:text-gray-400 w-24">{{ p.nom }} {{ p.prix_fcfa }} XOF</span>
+                        <input type="number"
+                          [ngModel]="entry.retourLignes[p.id] || 0"
+                          (ngModelChange)="setClientRetourLigne(entry, p.id, $event)"
+                          min="0" class="input-field w-16 text-sm py-1" />
+                      </div>
+                    }
+                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      Retournés : {{ getClientRetourTotal(entry) }} · Net : {{ entry.nb_pains_livres - getClientRetourTotal(entry) }}
+                      · <span class="text-orange-500">{{ getClientRetourValeur(entry) | number }} XOF retour</span>
+                    </p>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        @if (selectedClients.length > 0) {
+          <div class="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
+            <p class="text-sm text-gray-600 dark:text-gray-300">{{ selectedClients.length }} client(s) sélectionné(s)</p>
+            <button (click)="saveLivraisons()" class="btn-primary" [disabled]="saving()">
+              @if (saving()) { Enregistrement... } @else { Enregistrer les livraisons }
+            </button>
+          </div>
+        }
+      }
+    </div>
+  }
+}

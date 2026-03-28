@@ -1,0 +1,58 @@
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# ── Compiled output ──────────────────────────────────────────────────────────
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# ── Node ─────────────────────────────────────────────────────────────────────
+/node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json.bak
+
+# ── Angular ──────────────────────────────────────────────────────────────────
+/.angular/cache
+.sass-cache/
+/coverage
+/typings
+
+# ── Variables d'environnement ────────────────────────────────────────────────
+.env
+.env.local
+.env.production
+src/environments/environment.local.ts
+
+# ── IDEs et éditeurs ─────────────────────────────────────────────────────────
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# ── Visual Studio Code ───────────────────────────────────────────────────────
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# ── Fichiers système ─────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+/connect.lock
+/libpeerconnection.log
+testem.log
+
+# ── Tests ────────────────────────────────────────────────────────────────────
+/cypress/videos
+/cypress/screenshots

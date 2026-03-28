@@ -1,0 +1,19 @@
+export interface PortionPain {
+  id: number;
+  livreur_id: number;
+  nom: string;
+  prix_fcfa: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface PortionPainCreate {
+  nom: string;
+  prix_fcfa: number;
+}
+
+export interface PortionPainUpdate {
+  nom?: string;
+  prix_fcfa?: number;
+  is_active?: boolean;
+}

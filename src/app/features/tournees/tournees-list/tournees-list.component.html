@@ -1,0 +1,46 @@
+<app-page-header title="Tournées" subtitle="Suivi de vos sorties quotidiennes" />
+
+<div class="flex flex-col sm:flex-row gap-3 mb-4">
+  <input type="date" [formControl]="dateCtrl" class="input-field sm:w-44" />
+  <select [formControl]="boulangerieCtrl" class="input-field sm:w-52">
+    <option [ngValue]="null">Toutes les boulangeries</option>
+    @for (b of boulangeries(); track b.id) {
+      <option [ngValue]="b.id">{{ b.nom }}</option>
+    }
+  </select>
+  <a routerLink="/tournees/new" class="btn-primary whitespace-nowrap ml-auto">+ Nouvelle tournée</a>
+</div>
+
+@if (loading()) {
+  <app-loading-spinner />
+} @else {
+  <div class="space-y-3">
+    @for (t of tournees(); track t.id) {
+      <a [routerLink]="['/tournees', t.id]" class="card flex items-center justify-between hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-4">
+          <div class="text-center w-12">
+            <span class="text-2xl">{{ t.periode === 'matin' ? '🌅' : '🌙' }}</span>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ t.periode === 'matin' ? 'Matin' : 'Soir' }}</p>
+          </div>
+          <div>
+            <p class="font-medium text-gray-900 dark:text-gray-100">{{ t.date | date:'EEE d MMM':'':'fr' }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t.boulangerie?.nom }}</p>
+            <div class="flex gap-3 mt-1 text-xs text-gray-600 dark:text-gray-400">
+              <span>📦 {{ t.nb_pains_pris }} pris</span>
+              <span>✅ {{ t.nb_pains_ecoules }} écoulés</span>
+              <span>↩️ {{ t.nb_pains_retournes }} retournés</span>
+            </div>
+          </div>
+        </div>
+        <app-status-badge [status]="t.statut" />
+      </a>
+    }
+    @if (tournees().length === 0) {
+      <div class="card text-center py-12 text-gray-400 dark:text-gray-500">
+        <div class="text-4xl mb-3">🚚</div>
+        <p>Aucune tournée pour cette date</p>
+        <a routerLink="/tournees/new" class="btn-primary mt-4 inline-block">Créer une tournée</a>
+      </div>
+    }
+  </div>
+}

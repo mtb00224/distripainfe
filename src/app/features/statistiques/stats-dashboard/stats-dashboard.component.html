@@ -1,0 +1,125 @@
+<app-page-header title="Statistiques" subtitle="Analysez vos performances par période" />
+
+<!-- Filters -->
+<div class="card mb-6">
+  <div class="flex flex-wrap gap-3 items-end">
+    <!-- Période type -->
+    <div>
+      <label class="label">Période</label>
+      <select [formControl]="periodeCtrl" class="input-field" (change)="load()">
+        @for (p of periodes; track p.value) {
+          <option [value]="p.value">{{ p.label }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Year nav -->
+    <div>
+      <label class="label">Année</label>
+      <div class="flex items-center gap-1">
+        <button (click)="prevYear()" class="btn-secondary px-2 py-2">‹</button>
+        <span class="px-4 py-2 font-semibold text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 rounded-lg">{{ anneeCtrl.value }}</span>
+        <button (click)="nextYear()" class="btn-secondary px-2 py-2">›</button>
+      </div>
+    </div>
+
+    <!-- Conditional selectors -->
+    @if (periodeCtrl.value === 'journalier') {
+      <div>
+        <label class="label">Date</label>
+        <input type="date" [formControl]="dateCtrl" class="input-field" (change)="load()" />
+      </div>
+    }
+    @if (periodeCtrl.value === 'mensuel') {
+      <div>
+        <label class="label">Mois</label>
+        <select [formControl]="moisCtrl" class="input-field" (change)="load()">
+          @for (m of [1,2,3,4,5,6,7,8,9,10,11,12]; track m) {
+            <option [ngValue]="m">{{ m }}</option>
+          }
+        </select>
+      </div>
+    }
+    @if (periodeCtrl.value === 'trimestriel') {
+      <div>
+        <label class="label">Trimestre</label>
+        <select [formControl]="trimestreCtrl" class="input-field" (change)="load()">
+          <option [ngValue]="1">T1 (Jan–Mar)</option>
+          <option [ngValue]="2">T2 (Avr–Juin)</option>
+          <option [ngValue]="3">T3 (Juil–Sep)</option>
+          <option [ngValue]="4">T4 (Oct–Déc)</option>
+        </select>
+      </div>
+    }
+    @if (periodeCtrl.value === 'semestriel') {
+      <div>
+        <label class="label">Semestre</label>
+        <select [formControl]="semestreCtrl" class="input-field" (change)="load()">
+          <option [ngValue]="1">S1 (Jan–Juin)</option>
+          <option [ngValue]="2">S2 (Juil–Déc)</option>
+        </select>
+      </div>
+    }
+
+    <!-- Boulangerie filter -->
+    <div>
+      <label class="label">Boulangerie</label>
+      <select [formControl]="boulangerieCtrl" class="input-field" (change)="load()">
+        <option [ngValue]="null">Toutes</option>
+        @for (b of boulangeries(); track b.id) {
+          <option [ngValue]="b.id">{{ b.nom }}</option>
+        }
+      </select>
+    </div>
+  </div>
+</div>
+
+@if (loading()) {
+  <app-loading-spinner />
+} @else if (stats()) {
+  @let s = stats()!;
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="card text-center">
+      <div class="text-3xl font-bold text-blue-600">{{ s.nb_tournees }}</div>
+      <div class="text-xs text-gray-500 mt-1">Tournées</div>
+    </div>
+    <div class="card text-center">
+      <div class="text-3xl font-bold text-amber-600">{{ s.total_pains_pris }}</div>
+      <div class="text-xs text-gray-500 mt-1">Pains pris</div>
+    </div>
+    <div class="card text-center">
+      <div class="text-3xl font-bold text-green-600">{{ s.total_pains_ecoules }}</div>
+      <div class="text-xs text-gray-500 mt-1">Écoulés</div>
+    </div>
+    <div class="card text-center">
+      <div class="text-3xl font-bold text-orange-500">{{ s.total_pains_retournes }}</div>
+      <div class="text-xs text-gray-500 mt-1">Retournés</div>
+    </div>
+  </div>
+
+  <!-- Financial -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="card text-center">
+      <div class="text-2xl font-bold text-gray-800 dark:text-gray-100">{{ s.total_montant_du | number:'1.0-0' }} {{ devise() }}</div>
+      <div class="text-xs text-gray-500 mt-1">Montant dû total</div>
+    </div>
+    <div class="card text-center">
+      <div class="text-2xl font-bold text-emerald-600">{{ s.total_encaisse | number:'1.0-0' }} {{ devise() }}</div>
+      <div class="text-xs text-gray-500 mt-1">Encaissé</div>
+    </div>
+    <div class="card text-center">
+      <div class="text-2xl font-bold text-amber-600">{{ s.taux_ecoulement }}%</div>
+      <div class="text-xs text-gray-500 mt-1">Taux d'écoulement</div>
+      <div class="mt-2 w-full bg-gray-100 rounded-full h-2">
+        <div class="bg-amber-500 h-2 rounded-full" [style.width]="s.taux_ecoulement + '%'"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Periode label -->
+  <div class="text-center text-sm text-gray-500">
+    Données pour : <strong>{{ s.periode }}</strong>
+    @if (s.boulangerie_id) { · Boulangerie ID {{ s.boulangerie_id }} }
+  </div>
+}

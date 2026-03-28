@@ -1,0 +1,114 @@
+<app-page-header title="Enregistrer un encaissement" />
+
+@if (error()) {
+  <div class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-4">{{ error() }}</div>
+}
+
+<div class="max-w-2xl space-y-4">
+  <div class="card">
+    <h2 class="section-title mb-4">1. Sélectionner le client</h2>
+    <form [formGroup]="form">
+      <select formControlName="client_id" class="input-field">
+        <option [ngValue]="null">Choisir un client...</option>
+        @for (c of clients(); track c.id) {
+          <option [ngValue]="c.id">
+            {{ c.nom }} — Solde: {{ c.solde_actuel | currency:'XOF':'symbol-narrow':'1.0-0' }}
+          </option>
+        }
+      </select>
+    </form>
+  </div>
+
+  @if (pendingLivraisons().length > 0) {
+    <div class="card">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="section-title">2. Livraisons à solder</h2>
+        <button (click)="selectAll()" class="text-sm text-amber-600 hover:underline">Tout sélectionner</button>
+      </div>
+      <div class="space-y-2">
+        @for (lv of pendingLivraisons(); track lv.livraison_id) {
+          <label class="flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors"
+            [class.border-amber-300]="selectedIds().has(lv.livraison_id)"
+            [class.bg-amber-50]="selectedIds().has(lv.livraison_id)"
+            [class.border-gray-100]="!selectedIds().has(lv.livraison_id)">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" [checked]="selectedIds().has(lv.livraison_id)"
+                (change)="toggleLivraison(lv.livraison_id)" class="accent-amber-500" />
+              <div>
+                <p class="text-sm font-medium">{{ lv.tournee_date }} — {{ lv.tournee_periode }}</p>
+                <p class="text-xs text-gray-500">
+                  {{ lv.nb_pains_livres - lv.nb_pains_retournes }} pains nets
+                  @if (lv.nb_pains_retournes > 0) {
+                    <span class="text-gray-400">({{ lv.nb_pains_livres }} − {{ lv.nb_pains_retournes }} retournés)</span>
+                  }
+                </p>
+              </div>
+            </div>
+            <span class="font-semibold text-red-600">{{ lv.montant_du | currency:'XOF':'symbol-narrow':'1.0-0' }}</span>
+          </label>
+        }
+      </div>
+      @if (selectedIds().size > 0) {
+        <div class="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
+          <span class="text-sm text-gray-600">{{ selectedIds().size }} livraison(s) · Total dû</span>
+          <span class="font-bold text-lg text-red-600">{{ totalSelected() | currency:'XOF':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+      }
+    </div>
+  } @else if (form.value.client_id) {
+    <div class="card text-center py-6 text-gray-400 text-sm">✅ Aucune livraison impayée pour ce client</div>
+  }
+
+  <div class="card">
+    <h2 class="section-title mb-4">3. Mode de paiement</h2>
+    <div class="flex gap-2 mb-4">
+      <button type="button" class="flex-1 py-2 rounded-lg text-sm font-medium transition-colors"
+        [class.bg-amber-500]="!modeDette()" [class.text-white]="!modeDette()"
+        [class.bg-gray-100]="modeDette()" [class.text-gray-600]="modeDette()"
+        (click)="modeDette.set(false)">
+        💵 Encaisser maintenant
+      </button>
+      <button type="button" class="flex-1 py-2 rounded-lg text-sm font-medium transition-colors"
+        [class.bg-purple-500]="modeDette()" [class.text-white]="modeDette()"
+        [class.bg-gray-100]="!modeDette()" [class.text-gray-600]="!modeDette()"
+        (click)="modeDette.set(true)">
+        📋 Reporter (dette)
+      </button>
+    </div>
+
+    @if (modeDette()) {
+      <div class="p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg mb-4">
+        <p class="text-sm text-purple-800 dark:text-purple-300 font-medium">📋 Enregistrement comme dette</p>
+        <p class="text-xs text-purple-600 dark:text-purple-400 mt-1">Le montant sera enregistré comme dette à recouvrer ultérieurement. Le solde du client ne sera pas réduit.</p>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+      @if (!modeDette()) {
+        <div>
+          <label class="label">Montant encaissé (XOF) *</label>
+          <input type="number" formControlName="montant" class="input-field text-xl font-bold" min="0" step="1" placeholder="0" />
+        </div>
+        <div class="flex items-center gap-3 p-3 rounded-lg"
+          [class.bg-green-50]="encaissementType() === 'complet'"
+          [class.bg-orange-50]="encaissementType() === 'partiel'"
+          [class.bg-blue-50]="encaissementType() === 'avance'">
+          <span>{{ encaissementType() === 'complet' ? '✅' : encaissementType() === 'partiel' ? '⚠️' : '💳' }}</span>
+          <span class="text-sm font-medium text-gray-800 dark:text-gray-200">
+            {{ encaissementType() === 'complet' ? 'Paiement complet — livraisons soldées' : encaissementType() === 'partiel' ? 'Paiement partiel' : 'Avance sur compte' }}
+          </span>
+        </div>
+      }
+      <div>
+        <label class="label">Notes</label>
+        <textarea formControlName="notes" class="input-field" rows="2" placeholder="Remarque optionnelle"></textarea>
+      </div>
+      <div class="flex gap-3">
+        <button type="submit" class="btn-primary" [disabled]="loading() || (!modeDette() && form.invalid)">
+          @if (loading()) { Enregistrement... } @else { Enregistrer }
+        </button>
+        <button type="button" class="btn-secondary" (click)="router.navigate(['/encaissements'])">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,97 @@
+<app-page-header title="Clients" subtitle="Gérez votre liste de clients" />
+
+<div class="flex flex-col sm:flex-row gap-3 mb-4">
+  <input [formControl]="searchCtrl" type="search" class="input-field flex-1" placeholder="🔍 Rechercher un client..." />
+  <select [formControl]="zoneCtrl" class="input-field sm:w-48">
+    <option [ngValue]="null">Toutes les zones</option>
+    @for (z of zones(); track z.id) {
+      <option [ngValue]="z.id">{{ z.nom }}</option>
+    }
+  </select>
+  <a routerLink="/clients/new" class="btn-primary whitespace-nowrap">+ Ajouter</a>
+</div>
+
+@if (loading()) {
+  <app-loading-spinner />
+} @else {
+  <!-- Desktop table -->
+  <div class="hidden md:block card p-0 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-700 border-b border-gray-100 dark:border-gray-600">
+        <tr>
+          <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-300 font-medium">Client</th>
+          <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-300 font-medium">Zone / Pays</th>
+          <th class="text-left px-4 py-3 text-gray-600 dark:text-gray-300 font-medium">Téléphone</th>
+          <th class="text-right px-4 py-3 text-gray-600 dark:text-gray-300 font-medium">Solde</th>
+          <th class="text-right px-4 py-3 text-gray-600 dark:text-gray-300 font-medium">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+        @for (c of clients(); track c.id) {
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <td class="px-4 py-3">
+              <a [routerLink]="['/clients', c.id]" class="font-medium text-gray-900 dark:text-gray-100 hover:text-amber-600">{{ c.nom }}</a>
+            </td>
+            <td class="px-4 py-3 text-gray-500 dark:text-gray-400">
+              {{ c.zone?.nom ?? '—' }}
+              @if (c.pays) {
+                <span class="ml-1 text-xs text-indigo-500 dark:text-indigo-400">({{ c.pays.devise_code }})</span>
+              }
+            </td>
+            <td class="px-4 py-3 text-gray-500 dark:text-gray-400">{{ c.telephone ?? '—' }}</td>
+            <td class="px-4 py-3 text-right">
+              <app-status-badge [status]="getStatusForSolde(c.solde_actuel)" />
+              <span class="ml-2 font-medium" [class.text-red-600]="c.solde_actuel > 0" [class.text-green-600]="c.solde_actuel <= 0">
+                {{ c.solde_actuel | number:'1.0-0' }} {{ c.pays?.devise_code ?? '' }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-right">
+              <div class="flex gap-2 justify-end">
+                <a [routerLink]="['/clients', c.id, 'edit']" class="btn-secondary text-xs py-1 px-2">Modifier</a>
+                <button (click)="confirmDelete(c)" class="btn-danger text-xs py-1 px-2">Supprimer</button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (clients().length === 0) {
+      <div class="text-center py-12 text-gray-400 dark:text-gray-500">
+        <div class="text-4xl mb-3">👥</div>
+        <p>Aucun client trouvé</p>
+      </div>
+    }
+  </div>
+
+  <!-- Mobile cards -->
+  <div class="md:hidden space-y-3">
+    @for (c of clients(); track c.id) {
+      <div class="card">
+        <div class="flex items-center justify-between mb-2">
+          <a [routerLink]="['/clients', c.id]" class="font-medium text-gray-900 dark:text-gray-100">{{ c.nom }}</a>
+          <app-status-badge [status]="getStatusForSolde(c.solde_actuel)" />
+        </div>
+        @if (c.zone) { <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">📍 {{ c.zone.nom }}</p> }
+        @if (c.telephone) { <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">📞 {{ c.telephone }}</p> }
+        <div class="flex items-center justify-between">
+          <span class="font-bold" [class.text-red-600]="c.solde_actuel > 0" [class.text-green-600]="c.solde_actuel <= 0">
+            {{ c.solde_actuel | number:'1.0-0' }} {{ c.pays?.devise_code ?? '' }}
+          </span>
+          <div class="flex gap-2">
+            <a [routerLink]="['/clients', c.id, 'edit']" class="btn-secondary text-xs py-1 px-2">Modifier</a>
+            <button (click)="confirmDelete(c)" class="btn-danger text-xs py-1 px-2">Suppr.</button>
+          </div>
+        </div>
+      </div>
+    }
+    @if (clients().length === 0) {
+      <div class="card text-center py-10 text-gray-400 dark:text-gray-500">
+        <div class="text-4xl mb-2">👥</div>
+        <p>Aucun client trouvé</p>
+      </div>
+    }
+  </div>
+}
+
+<app-confirm-dialog [visible]="showConfirm()" title="Supprimer le client" [message]="'Supprimer ' + (toDelete()?.nom ?? '') + ' ?'"
+  (confirm)="doDelete()" (cancel)="showConfirm.set(false)" />

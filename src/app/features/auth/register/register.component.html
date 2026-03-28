@@ -1,0 +1,43 @@
+<div class="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
+    <div class="text-center mb-8">
+      <div class="text-5xl mb-3">🥖</div>
+      <h1 class="text-3xl font-bold text-amber-600">DistriPain</h1>
+      <p class="text-gray-500 mt-1">Créer votre compte livreur</p>
+    </div>
+
+    @if (error()) {
+      <div class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-4">
+        {{ error() }}
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+      <div>
+        <label class="label">Nom complet *</label>
+        <input type="text" formControlName="nom" class="input-field" placeholder="Jean Dupont" />
+      </div>
+      <div>
+        <label class="label">Email *</label>
+        <input type="email" formControlName="email" class="input-field" placeholder="vous@exemple.com" />
+      </div>
+      <div>
+        <label class="label">Mot de passe *</label>
+        <input type="password" formControlName="password" class="input-field" placeholder="Minimum 6 caractères" />
+      </div>
+      <div>
+        <label class="label">Téléphone</label>
+        <input type="tel" formControlName="telephone" class="input-field" placeholder="+33 6 12 34 56 78" />
+      </div>
+
+      <button type="submit" class="btn-primary w-full py-3 text-base" [disabled]="loading()">
+        @if (loading()) { Création... } @else { Créer mon compte }
+      </button>
+    </form>
+
+    <p class="text-center text-sm text-gray-500 mt-6">
+      Déjà inscrit ?
+      <a routerLink="/login" class="text-amber-600 font-medium hover:underline">Se connecter</a>
+    </p>
+  </div>
+</div>
