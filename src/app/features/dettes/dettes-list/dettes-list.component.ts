@@ -2,7 +2,6 @@ import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
-import { AuthService } from '../../../core/services/auth.service';
 import { Dette } from '../../../core/models/dette.models';
 import { Client } from '../../../core/models/client.models';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
@@ -215,13 +214,10 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
 })
 export class DettesListComponent implements OnInit {
   private api = inject(ApiService);
-  private auth = inject(AuthService);
   fb = inject(FormBuilder);
 
-  getClientDevise(clientId: number): string {
-    return this.clients().find((c) => c.id === clientId)?.pays?.devise_code
-      ?? this.auth.currentUser()?.pays?.devise_code
-      ?? '';
+  getClientDevise(_clientId: number): string {
+    return 'FCFA';
   }
 
   dettes = signal<Dette[]>([]);

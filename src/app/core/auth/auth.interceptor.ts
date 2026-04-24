@@ -13,7 +13,7 @@ export const authInterceptor: HttpInterceptorFn = (
   next: HttpHandlerFn
 ) => {
   // Admin routes manage their own token — don't interfere
-  if (req.url.includes('/admin/')) {
+  if (req.url.includes('/admin')) {
     return next(req);
   }
 

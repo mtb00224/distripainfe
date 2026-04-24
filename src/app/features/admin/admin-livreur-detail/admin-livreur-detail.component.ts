@@ -26,19 +26,16 @@ import { LivreurDetailStats } from '../../../core/models/admin.models';
           <div class="flex items-start justify-between">
             <div>
               <div class="flex items-center gap-3 mb-1">
-                <h1 class="text-xl font-bold text-white">{{ lv.nom }}</h1>
+                <h1 class="text-xl font-bold text-white">{{ lv.first_name }} {{ lv.last_name }}</h1>
                 @if (!lv.is_active) {
                   <span class="text-xs bg-red-900 text-red-300 px-2 py-0.5 rounded-full">Désactivé</span>
                 }
               </div>
               <p class="text-gray-400 text-sm">{{ lv.email }}</p>
-              @if (lv.telephone) {
-                <p class="text-gray-400 text-sm">{{ lv.telephone }}</p>
+              @if (lv.phone_number) {
+                <p class="text-gray-400 text-sm">{{ lv.phone_number }}</p>
               }
               <p class="text-gray-500 text-xs mt-1">Inscrit le {{ lv.created_at | date:'dd/MM/yyyy' }}</p>
-              @if (lv.pays) {
-                <p class="text-indigo-400 text-xs mt-1">🌍 {{ lv.pays.nom }} — {{ lv.pays.devise_nom }} ({{ lv.pays.devise_code }})</p>
-              }
             </div>
             <div class="text-right">
               <p class="text-xs text-gray-400">{{ lv.nb_acolytes }} acolyte(s)</p>
@@ -72,11 +69,11 @@ import { LivreurDetailStats } from '../../../core/models/admin.models';
           </div>
           <div class="bg-gray-800 rounded-xl border border-gray-700 p-3 text-center">
             <p class="text-xl font-bold text-green-400">{{ lv.revenue_total | number:'1.0-0' }}</p>
-            <p class="text-xs text-gray-400">{{ lv.pays?.devise_code ?? '' }} total</p>
+            <p class="text-xs text-gray-400">FCFA total</p>
           </div>
           <div class="bg-gray-800 rounded-xl border border-gray-700 p-3 text-center">
             <p class="text-xl font-bold text-green-400">{{ lv.revenue_30d | number:'1.0-0' }}</p>
-            <p class="text-xs text-gray-400">{{ lv.pays?.devise_code ?? '' }} 30j</p>
+            <p class="text-xs text-gray-400">FCFA 30j</p>
           </div>
         </div>
 
@@ -134,7 +131,7 @@ import { LivreurDetailStats } from '../../../core/models/admin.models';
                 <div class="flex-1 flex flex-col items-center gap-1">
                   <div class="w-full bg-indigo-600 rounded-sm"
                     [style.height.px]="maxRevenue > 0 ? (m.revenue / maxRevenue) * 80 : 0"
-                    [title]="m.month + ': ' + (m.revenue | number:'1.0-0') + ' ' + (lv.pays?.devise_code ?? '')">
+                    [title]="m.month + ': ' + (m.revenue | number:'1.0-0') + ' FCFA'">
                   </div>
                   <p class="text-xs text-gray-500 hidden lg:block" style="font-size: 9px">{{ m.month.slice(5) }}</p>
                 </div>

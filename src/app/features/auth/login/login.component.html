@@ -139,11 +139,85 @@
         </button>
       </form>
 
-      <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
-        Pas encore de compte ?
-        <a routerLink="/register" class="text-amber-600 font-medium hover:underline">S'inscrire</a>
-      </p>
+      <div class="flex items-center justify-between mt-4">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Pas encore de compte ?
+          <a routerLink="/register" class="text-amber-600 font-medium hover:underline">S'inscrire</a>
+        </p>
+        <button (click)="openForgot()" class="text-sm text-amber-600 hover:underline">
+          Mot de passe oublié ?
+        </button>
+      </div>
     </div>
   </div>
 
 </div>
+
+<!-- ── Modale mot de passe oublié ── -->
+@if (showForgot()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-sm p-6">
+
+      <!-- Étape 1 : email -->
+      @if (forgotStep() === 'email') {
+        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">Mot de passe oublié</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Entrez votre email pour vérifier votre compte.</p>
+        @if (forgotError()) {
+          <div class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded-lg mb-4">{{ forgotError() }}</div>
+        }
+        <form [formGroup]="forgotEmailForm" (ngSubmit)="submitForgotEmail()" class="space-y-4">
+          <div>
+            <label class="label">Email</label>
+            <input type="email" formControlName="email" class="input-field" placeholder="vous@exemple.com" autocomplete="email" />
+          </div>
+          <div class="flex gap-3">
+            <button type="submit" class="btn-primary flex-1" [disabled]="forgotLoading()">
+              @if (forgotLoading()) { Vérification... } @else { Vérifier }
+            </button>
+            <button type="button" class="btn-secondary" (click)="closeForgot()">Annuler</button>
+          </div>
+        </form>
+      }
+
+      <!-- Étape 2 : nouveau mot de passe -->
+      @if (forgotStep() === 'password') {
+        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">Nouveau mot de passe</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Compte : <strong>{{ forgotEmail() }}</strong></p>
+        @if (forgotError()) {
+          <div class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded-lg mb-4">{{ forgotError() }}</div>
+        }
+        <form [formGroup]="forgotPasswordForm" (ngSubmit)="submitForgotPassword()" class="space-y-4">
+          <div>
+            <label class="label">Nouveau mot de passe *</label>
+            <input [type]="newPasswordVisible() ? 'text' : 'password'" formControlName="new_password" class="input-field" autocomplete="new-password" />
+            <p class="text-xs text-gray-400 mt-1">Minimum 5 caractères</p>
+          </div>
+          <div>
+            <label class="label">Confirmer *</label>
+            <input [type]="newPasswordVisible() ? 'text' : 'password'" formControlName="confirm_password" class="input-field" autocomplete="new-password" />
+            @if (forgotPasswordForm.errors?.['mismatch'] && forgotPasswordForm.get('confirm_password')?.touched) {
+              <p class="text-xs text-red-500 mt-1">Les mots de passe ne correspondent pas</p>
+            }
+          </div>
+          <div class="flex gap-3">
+            <button type="submit" class="btn-primary flex-1" [disabled]="forgotLoading()">
+              @if (forgotLoading()) { Enregistrement... } @else { Réinitialiser }
+            </button>
+            <button type="button" class="btn-secondary" (click)="closeForgot()">Annuler</button>
+          </div>
+        </form>
+      }
+
+      <!-- Étape 3 : succès -->
+      @if (forgotStep() === 'done') {
+        <div class="text-center py-4">
+          <div class="text-4xl mb-3">✅</div>
+          <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Mot de passe mis à jour</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.</p>
+          <button (click)="closeForgot()" class="btn-primary w-full">Retour à la connexion</button>
+        </div>
+      }
+
+    </div>
+  </div>
+}

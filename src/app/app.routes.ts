@@ -1,14 +1,17 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
+import { publicGuard } from './core/auth/public.guard';
+import { catchAllGuard } from './core/auth/catch-all.guard';
 import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
 import { ChangePasswordComponent } from './features/auth/change-password/change-password.component';
 import { MainLayoutComponent } from './shared/layout/main-layout/main-layout.component';
+import { NotFoundComponent } from './shared/not-found/not-found.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
+  { path: 'login', component: LoginComponent, canActivate: [publicGuard] },
+  { path: 'register', component: RegisterComponent, canActivate: [publicGuard] },
   { path: 'change-password', component: ChangePasswordComponent },
   {
     path: '',
@@ -77,5 +80,10 @@ export const routes: Routes = [
     path: 'admin',
     loadChildren: () => import('./features/admin/admin.routes').then((m) => m.adminRoutes),
   },
-  { path: '**', redirectTo: '/dashboard' },
+  {
+    path: 'boulangerie',
+    loadChildren: () =>
+      import('./features/boulangerie/boulangerie.routes').then((m) => m.boulangerieRoutes),
+  },
+  { path: '**', canActivate: [catchAllGuard], component: NotFoundComponent },
 ];

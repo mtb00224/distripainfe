@@ -1,8 +1,7 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
-import { AuthService } from '../../../core/services/auth.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
@@ -43,11 +42,10 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 export class BoulangerieFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
-  private auth = inject(AuthService);
   router = inject(Router);
   private route = inject(ActivatedRoute);
 
-  devise = computed(() => this.auth.currentUser()?.pays?.devise_code ?? '');
+  devise = signal('FCFA');
 
   loading = signal(false);
   error = signal('');

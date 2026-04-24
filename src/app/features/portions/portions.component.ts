@@ -1,7 +1,6 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
-import { AuthService } from '../../core/services/auth.service';
 import { PortionPain } from '../../core/models/portion_pain.models';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -30,9 +29,16 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
               <label class="label">Nom de la portion *</label>
               <input type="text" formControlName="nom" class="input-field" placeholder="Ex: Morceau 50" />
             </div>
-            <div>
-              <label class="label">Prix{{ devise() ? ' (' + devise() + ')' : '' }} *</label>
-              <input type="number" formControlName="prix_fcfa" class="input-field" min="1" placeholder="Ex: 50" />
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="label">Prix{{ devise() ? ' (' + devise() + ')' : '' }} *</label>
+                <input type="number" formControlName="prix_fcfa" class="input-field" min="1" placeholder="Ex: 50" />
+              </div>
+              <div>
+                <label class="label">Équivalent pain *</label>
+                <input type="number" formControlName="valeur_unitaire" class="input-field" min="0.01" step="0.01" placeholder="Ex: 0.33" />
+                <p class="text-xs text-gray-400 mt-1">Fraction d'un pain entier (ex: 50F=0.33, 75F=0.50, 100F=0.66, 150F=1.0)</p>
+              </div>
             </div>
             <div class="flex gap-2">
               <button type="submit" class="btn-primary" [disabled]="saving() || form.invalid">
@@ -53,7 +59,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
               <div class="flex items-center justify-between py-2 border-b border-gray-50 dark:border-gray-700 last:border-0">
                 <div>
                   <p class="font-medium text-sm text-gray-900 dark:text-gray-100">{{ p.nom }}</p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ p.prix_fcfa }} {{ devise() }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ p.prix_fcfa }} {{ devise() }} · {{ p.valeur_unitaire }} pain</p>
                 </div>
                 <div class="flex gap-2">
                   <button (click)="startEdit(p)" class="text-blue-500 hover:text-blue-700 text-sm px-2 py-1 rounded">✏️</button>
@@ -81,9 +87,8 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
 export class PortionsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
-  private auth = inject(AuthService);
 
-  devise = computed(() => this.auth.currentUser()?.pays?.devise_code ?? '');
+  devise = signal('FCFA');
 
   portions = signal<PortionPain[]>([]);
   loading = signal(true);
@@ -96,6 +101,7 @@ export class PortionsComponent implements OnInit {
   form = this.fb.group({
     nom: ['', Validators.required],
     prix_fcfa: [null as number | null, [Validators.required, Validators.min(1)]],
+    valeur_unitaire: [null as number | null, [Validators.required, Validators.min(0.01)]],
   });
 
   ngOnInit(): void {
@@ -112,7 +118,7 @@ export class PortionsComponent implements OnInit {
 
   startEdit(p: PortionPain): void {
     this.editingId.set(p.id);
-    this.form.patchValue({ nom: p.nom, prix_fcfa: p.prix_fcfa });
+    this.form.patchValue({ nom: p.nom, prix_fcfa: p.prix_fcfa, valeur_unitaire: p.valeur_unitaire });
   }
 
   cancelEdit(): void {
@@ -124,7 +130,7 @@ export class PortionsComponent implements OnInit {
     if (this.form.invalid) return;
     this.saving.set(true);
     this.error.set('');
-    const payload = { nom: this.form.value.nom!, prix_fcfa: this.form.value.prix_fcfa! };
+    const payload = { nom: this.form.value.nom!, prix_fcfa: this.form.value.prix_fcfa!, valeur_unitaire: this.form.value.valeur_unitaire! };
 
     const obs = this.editingId()
       ? this.api.updatePortion(this.editingId()!, payload)

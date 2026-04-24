@@ -4,7 +4,6 @@ import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { ApiService } from '../../../core/services/api.service';
-import { AuthService } from '../../../core/services/auth.service';
 import { ClientWithPending, PendingTournee } from '../../../core/models/encaissement.models';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
@@ -268,11 +267,10 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
 })
 export class EncaissementFormComponent implements OnInit {
   private api = inject(ApiService);
-  private auth = inject(AuthService);
   router = inject(Router);
   private route = inject(ActivatedRoute);
 
-  devise = computed(() => this.auth.currentUser()?.pays?.devise_code ?? '');
+  devise = signal('FCFA');
 
   // State
   loadingClients = signal(true);

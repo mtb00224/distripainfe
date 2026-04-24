@@ -1,8 +1,7 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
-import { AuthService } from '../../../core/services/auth.service';
 import { Boulangerie } from '../../../core/models/boulangerie.models';
 import { StatsPeriode, StatsPeriodeType } from '../../../core/models/stats.models';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
@@ -17,9 +16,8 @@ import { Observable } from 'rxjs';
 })
 export class StatsDashboardComponent implements OnInit {
   private api = inject(ApiService);
-  private auth = inject(AuthService);
 
-  devise = computed(() => this.auth.currentUser()?.pays?.devise_code ?? '');
+  devise = signal('FCFA');
 
   boulangeries = signal<Boulangerie[]>([]);
   stats = signal<StatsPeriode | null>(null);

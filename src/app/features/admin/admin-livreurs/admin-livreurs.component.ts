@@ -55,7 +55,7 @@ import { LivreurPerformance } from '../../../core/models/admin.models';
                   </div>
                   <div class="min-w-0">
                     <div class="flex items-center gap-2">
-                      <p class="font-semibold text-white truncate">{{ lv.nom }}</p>
+                      <p class="font-semibold text-white truncate">{{ lv.first_name }} {{ lv.last_name }}</p>
                       @if (!lv.is_active) {
                         <span class="text-xs bg-red-900 text-red-300 px-2 py-0.5 rounded-full flex-shrink-0">Désactivé</span>
                       }
@@ -64,9 +64,6 @@ import { LivreurPerformance } from '../../../core/models/admin.models';
                     <p class="text-xs text-gray-500 mt-0.5">
                       Inscrit {{ lv.created_at | date:'dd/MM/yyyy' }}
                       @if (lv.last_platform) { · 📱 {{ lv.last_platform }} }
-                      @if (lv.pays) {
-                        · <span class="text-indigo-400">🌍 {{ lv.pays.nom }} ({{ lv.pays.devise_code }})</span>
-                      }
                     </p>
                   </div>
                 </div>
@@ -108,7 +105,7 @@ import { LivreurPerformance } from '../../../core/models/admin.models';
                 </div>
                 <div class="text-center">
                   <p class="text-lg font-bold text-green-400">{{ lv.revenue_30d | number:'1.0-0' }}</p>
-                  <p class="text-xs text-gray-400">{{ lv.pays?.devise_code ?? '' }} 30j</p>
+                  <p class="text-xs text-gray-400">FCFA 30j</p>
                 </div>
               </div>
             </div>
@@ -138,7 +135,11 @@ export class AdminLivreursComponent implements OnInit {
     let list = this.livreurs();
     const q = this.search().toLowerCase();
     if (q) {
-      list = list.filter((lv) => lv.nom.toLowerCase().includes(q) || lv.email.toLowerCase().includes(q));
+      list = list.filter((lv) =>
+        `${lv.first_name} ${lv.last_name}`.toLowerCase().includes(q) ||
+        lv.username.toLowerCase().includes(q) ||
+        lv.email.toLowerCase().includes(q)
+      );
     }
     const sort = this.sortBy();
     return [...list].sort((a, b) => {
@@ -163,7 +164,7 @@ export class AdminLivreursComponent implements OnInit {
 
   toggleActive(lv: LivreurPerformance): void {
     const action = lv.is_active ? 'désactiver' : 'activer';
-    if (!confirm(`Voulez-vous ${action} le compte de ${lv.nom} ?`)) return;
+    if (!confirm(`Voulez-vous ${action} le compte de ${lv.first_name} ${lv.last_name} ?`)) return;
     this.adminApi.toggleLivreur(lv.id, !lv.is_active).subscribe({
       next: (updated) => {
         this.livreurs.update((list) => list.map((l) => l.id === updated.id ? updated : l));

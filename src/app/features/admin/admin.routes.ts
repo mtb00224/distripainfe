@@ -1,10 +1,11 @@
 import { Routes } from '@angular/router';
 import { adminAuthGuard } from '../../core/auth/admin-auth.guard';
+import { publicGuard } from '../../core/auth/public.guard';
 import { AdminLoginComponent } from './admin-login/admin-login.component';
 import { AdminLayoutComponent } from './admin-layout/admin-layout.component';
 
 export const adminRoutes: Routes = [
-  { path: 'login', component: AdminLoginComponent },
+  { path: 'login', component: AdminLoginComponent, canActivate: [publicGuard] },
   {
     path: '',
     component: AdminLayoutComponent,
@@ -33,9 +34,19 @@ export const adminRoutes: Routes = [
           import('./admin-traffic/admin-traffic.component').then((m) => m.AdminTrafficComponent),
       },
       {
-        path: 'pays',
+        path: 'boulangeries',
         loadComponent: () =>
-          import('./admin-pays/admin-pays.component').then((m) => m.AdminPaysComponent),
+          import('./admin-boulangeries/admin-boulangeries.component').then((m) => m.AdminBoulangeriesComponent),
+      },
+      {
+        path: 'boulangeries/gerant/:id',
+        loadComponent: () =>
+          import('./admin-gerant-detail/admin-gerant-detail.component').then((m) => m.AdminGerantDetailComponent),
+      },
+      {
+        path: 'boulangeries/detail/:id',
+        loadComponent: () =>
+          import('./admin-boulangerie-detail/admin-boulangerie-detail.component').then((m) => m.AdminBoulangerieDetailComponent),
       },
       {
         path: 'formules',

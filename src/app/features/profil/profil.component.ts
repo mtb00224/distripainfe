@@ -23,13 +23,19 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
       <div class="card">
         <h2 class="section-title mb-4">Informations personnelles</h2>
         <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="space-y-4">
-          <div>
-            <label class="label">Nom *</label>
-            <input type="text" formControlName="nom" class="input-field" placeholder="Votre nom" />
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="label">Prénom *</label>
+              <input type="text" formControlName="first_name" class="input-field" placeholder="Prénom" />
+            </div>
+            <div>
+              <label class="label">Nom *</label>
+              <input type="text" formControlName="last_name" class="input-field" placeholder="Nom" />
+            </div>
           </div>
           <div>
             <label class="label">Téléphone</label>
-            <input type="tel" formControlName="telephone" class="input-field" placeholder="Numéro de téléphone" />
+            <input type="tel" formControlName="phone_number" class="input-field" placeholder="Numéro de téléphone" />
           </div>
           <div>
             <label class="label">Email</label>
@@ -39,19 +45,9 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
           <div>
             <label class="label">Type de compte</label>
             <p class="text-sm text-gray-600 dark:text-gray-300 py-2">
-              {{ currentUser()?.user_type === 'livreur' ? '🚚 Livreur principal' : '👤 Acolyte' }}
+              {{ currentUser()?.role === 'livreur' ? '🚚 Livreur principal' : '👤 Acolyte' }}
             </p>
           </div>
-          @if (currentUser()?.pays) {
-            <div>
-              <label class="label">Pays / Devise</label>
-              <p class="text-sm text-gray-600 dark:text-gray-300 py-2">
-                🌍 {{ currentUser()!.pays!.nom }}
-                <span class="text-xs text-gray-400 dark:text-gray-500 ml-2">({{ currentUser()!.pays!.devise_nom }} — {{ currentUser()!.pays!.devise_code }})</span>
-              </p>
-              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Le pays est défini par l'administrateur</p>
-            </div>
-          }
           <button type="submit" class="btn-primary" [disabled]="savingProfile()">
             @if (savingProfile()) { Enregistrement... } @else { Enregistrer }
           </button>
@@ -94,8 +90,9 @@ export class ProfilComponent implements OnInit {
   currentUser = this.auth.currentUser;
 
   profileForm = this.fb.group({
-    nom: ['', Validators.required],
-    telephone: [''],
+    first_name: ['', Validators.required],
+    last_name: ['', Validators.required],
+    phone_number: [''],
   });
 
   passwordForm = this.fb.group({
@@ -107,8 +104,9 @@ export class ProfilComponent implements OnInit {
     const user = this.auth.currentUser();
     if (user) {
       this.profileForm.patchValue({
-        nom: user.nom,
-        telephone: user.telephone ?? '',
+        first_name: user.first_name,
+        last_name: user.last_name,
+        phone_number: user.phone_number ?? '',
       });
     }
   }
@@ -119,8 +117,9 @@ export class ProfilComponent implements OnInit {
     this.error.set('');
     this.successMsg.set('');
     this.api.updateProfile({
-      nom: this.profileForm.value.nom!,
-      telephone: this.profileForm.value.telephone || undefined,
+      first_name: this.profileForm.value.first_name!,
+      last_name: this.profileForm.value.last_name!,
+      phone_number: this.profileForm.value.phone_number || undefined,
     }).subscribe({
       next: () => {
         // Refresh user data from server
@@ -139,7 +138,7 @@ export class ProfilComponent implements OnInit {
     this.successMsg.set('');
 
     const user = this.auth.currentUser();
-    const isAcolyte = user?.user_type === 'acolyte';
+    const isAcolyte = user?.role === 'acolyte_livreur';
 
     const obs = isAcolyte
       ? this.auth.changeAcolytePassword({

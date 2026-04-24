@@ -1,8 +1,10 @@
 export interface Acolyte {
   id: number;
   livreur_principal_id: number;
-  nom: string;
-  email: string;
+  first_name: string;
+  last_name: string;
+  username: string;
+  email?: string;
   permissions: string[];
   is_default_password: boolean;
   is_active: boolean;
@@ -10,14 +12,15 @@ export interface Acolyte {
 }
 
 export interface AcolyteCreate {
-  nom: string;
-  email: string;
+  first_name: string;
+  last_name: string;
+  username: string;
+  email?: string;
+  phone_number?: string;
   permissions: string[];
 }
 
 export interface AcolyteUpdate {
-  nom?: string;
-  email?: string;
   permissions?: string[];
   is_active?: boolean;
 }

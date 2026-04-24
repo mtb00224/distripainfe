@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { AdminApiService } from '../../../core/services/admin-api.service';
 import { FormulaAbonnement, FormulaAbonnementCreate } from '../../../core/models/abonnement.models';
-import { Pays } from '../../../core/models/pays.models';
 
 @Component({
   selector: 'app-admin-formules',
@@ -28,13 +27,10 @@ import { Pays } from '../../../core/models/pays.models';
           <div class="grid grid-cols-2 gap-4">
             <div class="col-span-2">
               <label class="block text-xs text-gray-400 mb-1">Pays / Devise</label>
-              <select [(ngModel)]="form.pays_id" class="admin-input">
-                <option [ngValue]="null">🌍 Globale (tous les pays)</option>
-                @for (p of pays(); track p.id) {
-                  <option [ngValue]="p.id">{{ p.nom }} — {{ p.devise_code }}</option>
-                }
-              </select>
-              <p class="text-xs text-gray-500 mt-1">Globale = visible par tous les livreurs quelle que soit leur devise</p>
+              <div class="admin-input flex items-center gap-2 text-gray-300">
+                <span>🇸🇳</span> Sénégal — FCFA
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Le projet fonctionne uniquement avec le FCFA sénégalais</p>
             </div>
             <div class="col-span-2">
               <label class="block text-xs text-gray-400 mb-1">Nom de la formule *</label>
@@ -45,12 +41,7 @@ import { Pays } from '../../../core/models/pays.models';
               <input [(ngModel)]="form.duree_mois" type="number" min="1" class="admin-input" placeholder="ex: 1, 3, 12" />
             </div>
             <div>
-              <label class="block text-xs text-gray-400 mb-1">
-                Prix *
-                @if (selectedPaysDevise()) {
-                  <span class="text-indigo-400 ml-1">({{ selectedPaysDevise() }})</span>
-                }
-              </label>
+              <label class="block text-xs text-gray-400 mb-1">Prix (FCFA) *</label>
               <input [(ngModel)]="form.prix" type="number" min="0" class="admin-input" placeholder="ex: 5000" />
             </div>
             <div class="col-span-2">
@@ -96,14 +87,10 @@ import { Pays } from '../../../core/models/pays.models';
                   }
                 </td>
                 <td class="px-4 py-3">
-                  @if (f.pays) {
-                    <span class="text-xs px-2 py-1 bg-blue-900/40 text-blue-300 rounded-full">{{ f.pays.nom }}</span>
-                  } @else {
-                    <span class="text-xs text-gray-500">🌍 Globale</span>
-                  }
+                  <span class="text-xs px-2 py-1 bg-green-900/40 text-green-300 rounded-full">🇸🇳 Sénégal</span>
                 </td>
                 <td class="px-4 py-3 text-gray-300">{{ f.duree_mois }} mois</td>
-                <td class="px-4 py-3 text-gray-300 font-medium">{{ f.prix | number }} {{ f.pays?.devise_code ?? 'FCFA' }}</td>
+                <td class="px-4 py-3 text-gray-300 font-medium">{{ f.prix | number }} FCFA</td>
                 <td class="px-4 py-3">
                   <span class="text-xs px-2 py-1 rounded-full"
                     [class.bg-green-900]="f.is_active" [class.text-green-300]="f.is_active"
@@ -152,7 +139,6 @@ export class AdminFormulesComponent implements OnInit {
   private api = inject(AdminApiService);
 
   formules = signal<FormulaAbonnement[]>([]);
-  pays = signal<Pays[]>([]);
   showForm = signal(false);
   saving = signal(false);
   error = signal('');
@@ -160,22 +146,13 @@ export class AdminFormulesComponent implements OnInit {
 
   form: FormulaAbonnementCreate & { description?: string } = { pays_id: null, nom: '', duree_mois: 1, prix: 0 };
 
-  get selectedPaysDevise(): () => string {
-    return () => {
-      if (!this.form.pays_id) return '';
-      const p = this.pays().find((x) => x.id === this.form.pays_id);
-      return p ? p.devise_code : '';
-    };
-  }
-
   ngOnInit(): void {
     this.api.getFormules().subscribe((f) => this.formules.set(f));
-    this.api.getPays().subscribe((p) => this.pays.set(p));
   }
 
   startEdit(f: FormulaAbonnement): void {
     this.editing.set(f);
-    this.form = { pays_id: f.pays_id ?? null, nom: f.nom, duree_mois: f.duree_mois, prix: f.prix, description: f.description ?? '' };
+    this.form = { pays_id: null, nom: f.nom, duree_mois: f.duree_mois, prix: f.prix, description: f.description ?? '' };
     this.showForm.set(true);
   }
 

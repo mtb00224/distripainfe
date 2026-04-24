@@ -29,8 +29,8 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
               <div class="flex items-center gap-3">
                 <span class="text-2xl">👤</span>
                 <div>
-                  <p class="font-medium text-gray-900 dark:text-gray-100">{{ a.nom }}</p>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">{{ a.email }}</p>
+                  <p class="font-medium text-gray-900 dark:text-gray-100">{{ a.first_name }} {{ a.last_name }}</p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">{{ a.username }}{{ a.email ? ' · ' + a.email : '' }}</p>
                 </div>
               </div>
               <div class="flex items-center gap-2">
@@ -67,7 +67,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
         }
       </div>
     }
-    <app-confirm-dialog [visible]="showConfirm()" title="Désactiver l'acolyte" [message]="'Désactiver ' + (toDelete()?.nom ?? '') + ' ?'"
+    <app-confirm-dialog [visible]="showConfirm()" title="Désactiver l'acolyte" [message]="'Désactiver ' + (toDelete()?.first_name ?? '') + ' ' + (toDelete()?.last_name ?? '') + ' ?'"
       (confirm)="doDelete()" (cancel)="showConfirm.set(false)" />
   `,
 })

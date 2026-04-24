@@ -14,15 +14,25 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
     @if (error()) { <div class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-4">{{ error() }}</div> }
     <div class="card max-w-lg">
       <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
-        <div>
-          <label class="label">Nom *</label>
-          <input type="text" formControlName="nom" class="input-field" />
-        </div>
-        <div>
-          <label class="label">Email *</label>
-          <input type="email" formControlName="email" class="input-field" [disabled]="isEdit" />
-        </div>
         @if (!isEdit) {
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="label">Prénom *</label>
+              <input type="text" formControlName="first_name" class="input-field" />
+            </div>
+            <div>
+              <label class="label">Nom *</label>
+              <input type="text" formControlName="last_name" class="input-field" />
+            </div>
+          </div>
+          <div>
+            <label class="label">Nom d'utilisateur *</label>
+            <input type="text" formControlName="username" class="input-field" />
+          </div>
+          <div>
+            <label class="label">Email</label>
+            <input type="email" formControlName="email" class="input-field" />
+          </div>
           <div class="text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
             ℹ️ Le mot de passe par défaut sera <strong>00000</strong>. L'acolyte devra le changer à la première connexion.
           </div>
@@ -62,8 +72,10 @@ export class AcolyteFormComponent implements OnInit {
   editId: number | null = null;
 
   form = this.fb.group({
-    nom: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
+    first_name: ['', Validators.required],
+    last_name: ['', Validators.required],
+    username: ['', Validators.required],
+    email: [''],
   });
 
   ngOnInit(): void {
@@ -71,10 +83,14 @@ export class AcolyteFormComponent implements OnInit {
     if (id && id !== 'new') {
       this.isEdit = true;
       this.editId = +id;
+      // Remove required validators for fields hidden in edit mode
+      this.form.controls['first_name'].clearValidators();
+      this.form.controls['last_name'].clearValidators();
+      this.form.controls['username'].clearValidators();
+      this.form.updateValueAndValidity();
       this.api.getAcolytes().subscribe((list) => {
         const a = list.find((x) => x.id === this.editId);
         if (a) {
-          this.form.patchValue({ nom: a.nom, email: a.email });
           this.selectedPerms = new Set(a.permissions);
         }
       });
@@ -91,8 +107,14 @@ export class AcolyteFormComponent implements OnInit {
     this.loading.set(true);
     const permissions = Array.from(this.selectedPerms);
     const action = this.isEdit
-      ? this.api.updateAcolyte(this.editId!, { nom: this.form.value.nom!, permissions })
-      : this.api.createAcolyte({ nom: this.form.value.nom!, email: this.form.value.email!, permissions });
+      ? this.api.updateAcolyte(this.editId!, { permissions })
+      : this.api.createAcolyte({
+          first_name: this.form.value.first_name!,
+          last_name: this.form.value.last_name!,
+          username: this.form.value.username!,
+          email: this.form.value.email || undefined,
+          permissions,
+        });
     action.subscribe({
       next: () => this.router.navigate(['/acolytes']),
       error: (err) => { this.error.set(err.error?.detail ?? 'Erreur'); this.loading.set(false); },

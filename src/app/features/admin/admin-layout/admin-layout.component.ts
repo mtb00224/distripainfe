@@ -48,10 +48,10 @@ import { AdminApiService } from '../../../core/services/admin-api.service';
             📱 Moyens paiement
           </a>
 
-          <p class="px-3 pt-3 pb-1 text-xs text-gray-500 uppercase tracking-wider">Configuration</p>
-          <a routerLink="/admin/pays" routerLinkActive="bg-indigo-700 text-white"
+          <p class="px-3 pt-3 pb-1 text-xs text-gray-500 uppercase tracking-wider">Boulangeries</p>
+          <a routerLink="/admin/boulangeries" routerLinkActive="bg-indigo-700 text-white"
             class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors text-sm">
-            🌍 Pays & Devises
+            🏪 Boulangeries
           </a>
         </nav>
 

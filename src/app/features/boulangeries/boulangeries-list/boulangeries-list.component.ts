@@ -1,8 +1,7 @@
-import { Component, inject, signal, computed, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, signal, OnInit, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
-import { AuthService } from '../../../core/services/auth.service';
 import { Boulangerie } from '../../../core/models/boulangerie.models';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -66,10 +65,9 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 })
 export class BoulangeriesListComponent implements OnInit {
   private api = inject(ApiService);
-  private auth = inject(AuthService);
   private destroyRef = inject(DestroyRef);
 
-  devise = computed(() => this.auth.currentUser()?.pays?.devise_code ?? '');
+  devise = signal('FCFA');
   boulangeries = signal<Boulangerie[]>([]);
   loading = signal(true);
   showConfirm = signal(false);

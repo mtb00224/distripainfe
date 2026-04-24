@@ -2,7 +2,6 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminApiService } from '../../../core/services/admin-api.service';
 import { MoyenPaiement, MoyenPaiementCreate } from '../../../core/models/abonnement.models';
-import { Pays } from '../../../core/models/pays.models';
 
 @Component({
   selector: 'app-admin-moyens-paiement',
@@ -34,13 +33,10 @@ import { Pays } from '../../../core/models/pays.models';
               <input [(ngModel)]="form.numero" class="admin-input" placeholder="ex: +221 77 000 00 00" />
             </div>
             <div>
-              <label class="block text-xs text-gray-400 mb-1">Pays (optionnel)</label>
-              <select [(ngModel)]="form.pays_id" class="admin-input">
-                <option [ngValue]="null">Tous les pays</option>
-                @for (p of pays(); track p.id) {
-                  <option [ngValue]="p.id">{{ p.nom }} ({{ p.devise_code }})</option>
-                }
-              </select>
+              <label class="block text-xs text-gray-400 mb-1">Pays</label>
+              <div class="admin-input flex items-center gap-2 text-gray-300">
+                <span>🇸🇳</span> Sénégal — FCFA
+              </div>
             </div>
             <div class="col-span-2">
               <label class="block text-xs text-gray-400 mb-1">Instructions</label>
@@ -84,8 +80,8 @@ import { Pays } from '../../../core/models/pays.models';
                   }
                 </td>
                 <td class="px-4 py-3 text-gray-300 font-mono">{{ m.numero }}</td>
-                <td class="px-4 py-3 text-gray-400 text-xs">
-                  {{ m.pays ? m.pays.nom : 'Tous les pays' }}
+                <td class="px-4 py-3">
+                  <span class="text-xs text-green-400">🇸🇳 Sénégal</span>
                 </td>
                 <td class="px-4 py-3">
                   <span class="text-xs px-2 py-1 rounded-full"
@@ -135,7 +131,6 @@ export class AdminMoyensPaiementComponent implements OnInit {
   private api = inject(AdminApiService);
 
   moyens = signal<MoyenPaiement[]>([]);
-  pays = signal<Pays[]>([]);
   showForm = signal(false);
   saving = signal(false);
   error = signal('');
@@ -145,12 +140,11 @@ export class AdminMoyensPaiementComponent implements OnInit {
 
   ngOnInit(): void {
     this.api.getMoyensPaiement().subscribe((m) => this.moyens.set(m));
-    this.api.getPays().subscribe((p) => this.pays.set(p));
   }
 
   startEdit(m: MoyenPaiement): void {
     this.editing.set(m);
-    this.form = { nom: m.nom, numero: m.numero, pays_id: m.pays_id ?? null, instructions: m.instructions ?? '' };
+    this.form = { nom: m.nom, numero: m.numero, pays_id: null, instructions: m.instructions ?? '' };
     this.showForm.set(true);
   }
 

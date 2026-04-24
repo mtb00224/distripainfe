@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Boulangerie, BoulangerieCreate, BoulangerieUpdate } from '../models/boulangerie.models';
+import { Fournisseur, FournisseurCreate, FournisseurLinkRequest, FournisseurContratUpdate } from '../models/production.models';
 import { Zone, ZoneCreate, ZoneUpdate } from '../models/zone.models';
 import { Client, ClientCreate, ClientSolde, ClientUpdate } from '../models/client.models';
 import { Tournee, TourneeCreate, LivraisonClient, LivraisonCreate, RetourBoulangerieResponse } from '../models/tournee.models';
@@ -204,7 +205,7 @@ export class ApiService {
   }
 
   // ── Profil ────────────────────────────────────────────────────────────────
-  updateProfile(payload: { nom?: string; telephone?: string }): Observable<any> {
+  updateProfile(payload: { first_name?: string; last_name?: string; phone_number?: string }): Observable<any> {
     return this.http.patch(`${this.base}/auth/me`, payload);
   }
   changeLivreurPassword(payload: { current_password: string; new_password: string }): Observable<void> {
@@ -247,6 +248,25 @@ export class ApiService {
     if (dateDebut) p = p.set('date_debut', dateDebut);
     if (dateFin) p = p.set('date_fin', dateFin);
     return this.http.get<StatsClient>(`${this.base}/stats/client/${clientId}`, { params: p });
+  }
+
+  // ── Fournisseurs (boulangeries du livreur) ────────────────────────────────
+  getFournisseurs(includeInactive = false): Observable<Fournisseur[]> {
+    return this.http.get<Fournisseur[]>(`${this.base}/boulangeries`, {
+      params: { include_inactive: includeInactive },
+    });
+  }
+  createFournisseur(payload: FournisseurCreate): Observable<Fournisseur> {
+    return this.http.post<Fournisseur>(`${this.base}/boulangeries`, payload);
+  }
+  linkFournisseur(payload: FournisseurLinkRequest): Observable<Fournisseur> {
+    return this.http.post<Fournisseur>(`${this.base}/boulangeries/link`, payload);
+  }
+  updateContratFournisseur(id: number, payload: FournisseurContratUpdate): Observable<Fournisseur> {
+    return this.http.put<Fournisseur>(`${this.base}/boulangeries/${id}/contrat`, payload);
+  }
+  unlinkFournisseur(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/boulangeries/${id}`);
   }
 
   // ── Dettes ────────────────────────────────────────────────────────────────

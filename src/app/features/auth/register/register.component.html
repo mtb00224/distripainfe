@@ -3,7 +3,38 @@
     <div class="text-center mb-8">
       <div class="text-5xl mb-3">🥖</div>
       <h1 class="text-3xl font-bold text-amber-600">DistriPain</h1>
-      <p class="text-gray-500 mt-1">Créer votre compte livreur</p>
+      <p class="text-gray-500 mt-1">Créer votre compte</p>
+    </div>
+
+    <!-- Sélecteur de rôle -->
+    <div class="mb-6">
+      <p class="text-sm font-medium text-gray-700 mb-3">Je suis :</p>
+      <div class="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          (click)="selectedRole.set('livreur')"
+          class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all"
+          [class.border-amber-500]="selectedRole() === 'livreur'"
+          [class.bg-amber-50]="selectedRole() === 'livreur'"
+          [class.border-gray-200]="selectedRole() !== 'livreur'"
+        >
+          <span class="text-3xl">🚚</span>
+          <span class="text-sm font-semibold text-gray-700">Livreur</span>
+          <span class="text-xs text-gray-400 text-center">Je livre du pain</span>
+        </button>
+        <button
+          type="button"
+          (click)="selectedRole.set('admin_boulangerie')"
+          class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all"
+          [class.border-amber-500]="selectedRole() === 'admin_boulangerie'"
+          [class.bg-amber-50]="selectedRole() === 'admin_boulangerie'"
+          [class.border-gray-200]="selectedRole() !== 'admin_boulangerie'"
+        >
+          <span class="text-3xl">🏪</span>
+          <span class="text-sm font-semibold text-gray-700">Boulangerie</span>
+          <span class="text-xs text-gray-400 text-center">Je gère ma boutique</span>
+        </button>
+      </div>
     </div>
 
     @if (error()) {
@@ -13,9 +44,19 @@
     }
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="label">Prénom *</label>
+          <input type="text" formControlName="first_name" class="input-field" placeholder="Jean" />
+        </div>
+        <div>
+          <label class="label">Nom *</label>
+          <input type="text" formControlName="last_name" class="input-field" placeholder="Dupont" />
+        </div>
+      </div>
       <div>
-        <label class="label">Nom complet *</label>
-        <input type="text" formControlName="nom" class="input-field" placeholder="Jean Dupont" />
+        <label class="label">Nom d'utilisateur *</label>
+        <input type="text" formControlName="username" class="input-field" placeholder="jean.dupont" />
       </div>
       <div>
         <label class="label">Email *</label>
@@ -27,7 +68,7 @@
       </div>
       <div>
         <label class="label">Téléphone</label>
-        <input type="tel" formControlName="telephone" class="input-field" placeholder="+33 6 12 34 56 78" />
+        <input type="tel" formControlName="phone_number" class="input-field" placeholder="+221 77 000 00 00" />
       </div>
 
       <button type="submit" class="btn-primary w-full py-3 text-base" [disabled]="loading()">

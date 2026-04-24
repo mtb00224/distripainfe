@@ -1,6 +1,6 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Tournee } from '../../core/models/tournee.models';
@@ -13,7 +13,7 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge/statu
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, DecimalPipe, DatePipe, NgClass, LoadingSpinnerComponent, StatusBadgeComponent],
+  imports: [RouterLink, DecimalPipe, DatePipe, LoadingSpinnerComponent, StatusBadgeComponent],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
@@ -26,7 +26,7 @@ export class DashboardComponent implements OnInit {
   clientsWithDebt = signal<Client[]>([]);
   boulangeries = signal<Boulangerie[]>([]);
   today = new Date().toISOString().split('T')[0];
-  devise = computed(() => this.auth.currentUser()?.pays?.devise_code ?? '');
+  devise = signal('FCFA');
 
   ngOnInit(): void {
     this.loadDashboard();
@@ -80,7 +80,6 @@ export class DashboardComponent implements OnInit {
   }
 
   get firstName(): string {
-    const nom = this.auth.currentUser()?.nom ?? '';
-    return nom.split(' ')[0] || nom;
+    return this.auth.currentUser()?.first_name ?? '';
   }
 }

@@ -32,9 +32,11 @@ export interface PlatformStats {
 
 export interface LivreurPerformance {
   id: number;
-  nom: string;
+  first_name: string;
+  last_name: string;
+  username: string;
   email: string;
-  telephone: string | null;
+  phone_number: string | null;
   is_active: boolean;
   created_at: string;
   nb_clients: number;
@@ -47,7 +49,6 @@ export interface LivreurPerformance {
   last_device: string | null;
   last_platform: string | null;
   nb_acolytes: number;
-  pays?: { id: number; nom: string; code: string; devise_nom: string; devise_code: string } | null;
 }
 
 export interface RecentSession {
@@ -68,10 +69,9 @@ export interface LivreurDetailStats {
 export interface TrafficEntry {
   id: number;
   logged_in_at: string;
-  livreur_id: number;
-  livreur_nom: string;
-  user_type: string;
-  acolyte_nom: string | null;
+  user_id: number;
+  username: string;
+  role: string;
   ip_address: string | null;
   device_type: string;
   platform: string;
@@ -88,4 +88,27 @@ export interface TrafficStats {
 export interface LivreurPermissions {
   livreur_id: number;
   permissions: string[] | null; // null = full access
+}
+
+export interface AdminBoulangerieEntry {
+  id: number;
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  phone_number: string | null;
+  is_active: boolean;
+  nb_boulangeries: number;
+  created_at: string | null;
+}
+
+export interface BoulangerieEntry {
+  id: number;
+  nom: string;
+  contact: string | null;
+  address: string | null;
+  is_active: boolean;
+  created_at: string | null;
+  admin_nom: string | null;
+  admin_email: string | null;
 }

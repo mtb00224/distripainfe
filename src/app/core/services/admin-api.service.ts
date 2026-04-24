@@ -1,9 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   AdminTokenResponse,
+  AdminBoulangerieEntry,
+  BoulangerieEntry,
   LivreurDetailStats,
   LivreurPerformance,
   LivreurPermissions,
@@ -11,7 +14,6 @@ import {
   TrafficEntry,
   TrafficStats,
 } from '../models/admin.models';
-import { Pays, PaysCreate, PaysUpdate } from '../models/pays.models';
 import {
   Abonnement,
   FormulaAbonnement,
@@ -59,8 +61,16 @@ export class AdminApiService {
     return this.http.post<AdminTokenResponse>(`${this.base}/auth/login`, { email, password });
   }
 
-  setup(email: string, password: string, nom: string, setup_key: string): Observable<AdminTokenResponse> {
-    return this.http.post<AdminTokenResponse>(`${this.base}/auth/setup`, { email, password, nom, setup_key });
+  forgotPasswordCheck(email: string) {
+    return this.http.post<{ ok: boolean }>(`${this.base}/auth/forgot-password/check`, { email });
+  }
+
+  forgotPasswordReset(email: string, new_password: string) {
+    return this.http.post(`${this.base}/auth/forgot-password/reset`, { email, new_password });
+  }
+
+  setup(email: string, password: string, username: string, setup_key: string): Observable<AdminTokenResponse> {
+    return this.http.post<AdminTokenResponse>(`${this.base}/auth/setup`, { email, password, username, setup_key });
   }
 
   getStats(): Observable<PlatformStats> {
@@ -93,18 +103,28 @@ export class AdminApiService {
     return this.http.delete<void>(`${this.base}/traffic/${id}`, { headers: this.headers() });
   }
 
-  // ── Pays ──────────────────────────────────────────────────────────────────
-  getPays(): Observable<Pays[]> {
-    return this.http.get<Pays[]>(`${this.base}/pays`, { headers: this.headers() });
+  // ── Pays (stub — fonctionnalité désactivée) ───────────────────────────────
+  getPays(): Observable<never[]> {
+    return of([]);
   }
-  createPays(payload: PaysCreate): Observable<Pays> {
-    return this.http.post<Pays>(`${this.base}/pays`, payload, { headers: this.headers() });
+
+  // ── Boulangeries (admin view) ─────────────────────────────────────────────
+  getAdminBoulangeries(): Observable<BoulangerieEntry[]> {
+    return this.http.get<BoulangerieEntry[]>(`${this.base}/boulangeries`, { headers: this.headers() });
   }
-  updatePays(id: number, payload: PaysUpdate): Observable<Pays> {
-    return this.http.put<Pays>(`${this.base}/pays/${id}`, payload, { headers: this.headers() });
+  getAdminsBoulangerie(): Observable<AdminBoulangerieEntry[]> {
+    return this.http.get<AdminBoulangerieEntry[]>(`${this.base}/admins-boulangerie`, { headers: this.headers() });
   }
-  deletePays(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/pays/${id}`, { headers: this.headers() });
+  toggleAdminBoulangerie(id: number, is_active: boolean): Observable<{ id: number; is_active: boolean }> {
+    return this.http.patch<{ id: number; is_active: boolean }>(
+      `${this.base}/admins-boulangerie/${id}`, { is_active }, { headers: this.headers() }
+    );
+  }
+  getAdminBoulangerieDetail(id: number): Observable<any> {
+    return this.http.get<any>(`${this.base}/admins-boulangerie/${id}/detail`, { headers: this.headers() });
+  }
+  getBoulangerieDetail(id: number): Observable<any> {
+    return this.http.get<any>(`${this.base}/boulangeries/${id}/detail`, { headers: this.headers() });
   }
 
   // ── Formules abonnement ───────────────────────────────────────────────────

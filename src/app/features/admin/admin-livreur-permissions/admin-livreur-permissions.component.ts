@@ -38,7 +38,7 @@ const ALL_PERMISSIONS = [
             <div class="bg-gray-800 rounded-xl border border-gray-700 p-5">
               <div class="flex items-center justify-between mb-4">
                 <div>
-                  <p class="text-white font-semibold">{{ livreur.nom }}</p>
+                  <p class="text-white font-semibold">{{ livreur.first_name }} {{ livreur.last_name }}</p>
                   <p class="text-gray-400 text-sm">{{ livreur.email }}</p>
                 </div>
                 <div class="flex items-center gap-3">

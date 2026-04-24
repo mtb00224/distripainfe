@@ -26,9 +26,9 @@
       @if (currentUser) {
         <a routerLink="/profil" class="flex items-center gap-2 px-3 py-2 mb-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ currentUser.nom }}</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ currentUser.first_name }} {{ currentUser.last_name }}</p>
             <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ currentUser.email }}</p>
-            @if (currentUser.user_type === 'acolyte') {
+            @if (currentUser.role === 'acolyte_livreur') {
               <span class="text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full mt-1 inline-block">Acolyte</span>
             }
           </div>

@@ -81,7 +81,7 @@ import { TrafficEntry, TrafficStats } from '../../../core/models/admin.models';
           class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
           <option value="">Tous types</option>
           <option value="livreur">Livreur</option>
-          <option value="acolyte">Acolyte</option>
+          <option value="acolyte_livreur">Acolyte</option>
         </select>
         <span class="text-gray-400 text-sm">{{ filtered().length }} résultat(s)</span>
       </div>
@@ -111,19 +111,17 @@ import { TrafficEntry, TrafficStats } from '../../../core/models/admin.models';
               <!-- Type badge -->
               <div class="col-span-1">
                 <span class="text-xs px-1.5 py-0.5 rounded font-medium"
-                  [ngClass]="entry.user_type === 'acolyte'
+                  [ngClass]="entry.role === 'acolyte_livreur'
                     ? 'bg-amber-900/50 text-amber-300'
                     : 'bg-indigo-900/50 text-indigo-300'">
-                  {{ entry.user_type === 'acolyte' ? 'AC' : 'LV' }}
+                  {{ entry.role === 'acolyte_livreur' ? 'AC' : 'LV' }}
                 </span>
               </div>
 
               <!-- Utilisateur -->
               <div class="col-span-3 min-w-0">
-                <p class="text-white text-sm truncate font-medium">{{ entry.livreur_nom }}</p>
-                @if (entry.acolyte_nom) {
-                  <p class="text-amber-400 text-xs truncate">via {{ entry.acolyte_nom }}</p>
-                }
+                <p class="text-white text-sm truncate font-medium">{{ entry.username }}</p>
+                <p class="text-xs text-gray-500 truncate">{{ entry.role }}</p>
               </div>
 
               <!-- IP -->
@@ -192,9 +190,9 @@ export class AdminTrafficComponent implements OnInit {
     const type = this.filterUserType();
     return this.entries().filter((e) => {
       if (dev && e.device_type !== dev) return false;
-      if (type && e.user_type !== type) return false;
+      if (type && e.role !== type) return false;
       if (q) {
-        const hay = `${e.livreur_nom} ${e.acolyte_nom ?? ''} ${e.ip_address ?? ''} ${e.browser} ${e.platform}`.toLowerCase();
+        const hay = `${e.username} ${e.ip_address ?? ''} ${e.browser} ${e.platform}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
